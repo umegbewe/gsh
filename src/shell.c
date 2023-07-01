@@ -131,11 +131,11 @@ int shell_launch(char **args, int bg) {
         }
 
         if (execvp(args[0], args) == -1) {
-            perror("shell");
+            perror("gsh");
         }
         exit(EXIT_FAILURE);
     } else if (pid < 0) {
-        perror("shell");
+        perror("gsh");
     } else {
         // parent process (shell)
         // set process group ID for the job
@@ -173,7 +173,7 @@ int shell_cd(char **args) {
         fprintf(stderr, "shell: expected argument to \"cd\"\n");
     } else {
         if (chdir(args[1]) != 0) {
-            perror("shell");
+            perror("gsh");
         }
     }
     return 1;
