@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <limits.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <errno.h>
@@ -21,6 +22,7 @@ char *builtin_str[] = {
     "bg",
     "kill",
     "stop",
+    "history",
 };
 
 int (*builtin_func[]) (char **) = {
@@ -32,6 +34,7 @@ int (*builtin_func[]) (char **) = {
     &shell_bg,
     &shell_kill,
     &shell_stop,
+    &shell_history,
 };
 
 
@@ -53,11 +56,22 @@ void shell_loop(void) {
 char *shell_read_line(void) {
     rl_on_new_line();
 
-    char *line = readline("musk> ");
-    if (strlen(line) > 0) {
-        add_history(line);
+
+    // obtain current working directory
+    char cwd[PATH_MAX];
+    if (getcwd(cwd, sizeof(cwd)) != NULL) {
+        char prompt[PATH_MAX + 36];
+        snprintf(prompt, sizeof(prompt), "\033[1;32m%s\033[0m \033[1;34m%s\033[0m $ ", getenv("USER"), cwd);
+
+        char *line = readline(prompt);
+        if (strlen(line) > 0) {
+            add_history(line);
+        }
+        return line;
+    } else {
+        perror("getcwd");
+        exit(EXIT_FAILURE);
     }
-    return line;
 }
 
 char **shell_split_line(char *line) {
@@ -66,7 +80,7 @@ char **shell_split_line(char *line) {
     char *token;
 
     if (!tokens) {
-        fprintf(stderr, "myshell: allocation error\n");
+        fprintf(stderr, "gsh: allocation error\n");
         exit(EXIT_FAILURE);
     }
 
@@ -79,7 +93,7 @@ char **shell_split_line(char *line) {
             bufsize += SHELL_TOK_BUFSIZE;
             tokens = realloc(tokens, bufsize * sizeof(char*));
             if (!tokens) {
-                fprintf(stderr, "myshell: allocation error\n");
+                fprintf(stderr, "gsh: allocation error\n");
                 exit(EXIT_FAILURE);
             }
         }
@@ -123,7 +137,10 @@ int shell_launch(char **args, int bg) {
     if (pid == 0) {
         // child process
         // set process group ID to child's PID
-        setpgid(0, 0);
+        if (setpgid(0, 0) < 0) {
+            perror("setpgid failed");
+            exit(EXIT_FAILURE);
+        }
 
         // If process is a foreground one, give it control of the terminal
         if (!bg) {
@@ -308,6 +325,16 @@ int shell_stop(char **args) {
 
     job->status = 1;
 
+    return 1;
+}
+
+int shell_history(char **args) {
+    HIST_ENTRY **history = history_list();
+    if (history) {
+        for (int i = 0; i < sizeof(history); i++) {
+            printf("%d %s\n", i, history[i]->line);
+        }
+    }
     return 1;
 }
 int shell_num_builtins() {

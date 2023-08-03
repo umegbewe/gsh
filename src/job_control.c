@@ -6,8 +6,20 @@ extern Job *job_list;
 
 Job *add_job(pid_t pgid, char *command) {
     Job *new_job = malloc(sizeof(Job));
+    if (!new_job) {
+        perror("Error allocating memory for new job");
+        exit(EXIT_FAILURE);
+    }
+
     new_job->pgid = pgid;
     new_job->command = command;
+    
+    if (!new_job->command) {
+        perror("Error duplicating command string");
+        free(new_job);
+        exit(EXIT_FAILURE);
+    }
+
     new_job->status = 0;
 
 

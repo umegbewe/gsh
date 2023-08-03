@@ -25,6 +25,7 @@ int shell_bg(char **args);
 int shell_fg(char **args);
 int shell_kill(char **args);
 int shell_stop(char **args);
+int shell_history(char **args);
 int shell_num_builtins();
 
 Job *add_job(pid_t pgid, char *command);
