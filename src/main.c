@@ -7,10 +7,14 @@ int num_bg_jobs = 0;
 
 int main(int argc, char **argv) {
 
+    signal(SIGINT, SIG_IGN);
+    signal(SIGTSTP, SIG_IGN);
+    signal(SIGTTOU, SIG_IGN);
+
     if (argc > 1) {
         FILE *fp = fopen(argv[1], "r");
         if (fp == NULL) {
-           printf("musk: could not open file\n");
+           printf("gsh: could not open file\n");
            return 1;
         }
 
