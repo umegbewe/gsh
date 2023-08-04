@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 
 int num_bg_jobs = 0;
 
@@ -10,6 +12,8 @@ int main(int argc, char **argv) {
     signal(SIGINT, SIG_IGN);
     signal(SIGTSTP, SIG_IGN);
     signal(SIGTTOU, SIG_IGN);
+
+    rl_attempted_completion_function = shell_completion;
 
     if (argc > 1) {
         FILE *fp = fopen(argv[1], "r");

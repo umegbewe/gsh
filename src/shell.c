@@ -7,6 +7,9 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <dirent.h>
 #include "shell.h"
 
 #define SHELL_TOK_BUFSIZE 64
@@ -336,6 +339,68 @@ int shell_history(char **args) {
         printf("%d. %s\n", i - 1, entry->line);
     }
     return 1;
+}
+
+char **possible_matches = NULL;
+int match_index = 0;
+
+char *command_generator(const char *text, int state) {
+    if (state == 0) {
+        if (possible_matches) {
+            for (int i = 0; possible_matches[i]; i++) {
+                free(possible_matches[i]);
+            }
+            free(possible_matches);
+            possible_matches = NULL;
+        }
+
+        char * path = getenv("PATH");
+        char *token = strtok(path, ":");
+
+        while (token != NULL) {
+            DIR *dir = opendir(token);
+            if (dir) {
+                struct  dirent *entry;
+                while ((entry = readdir(dir))) {
+                    if (strncmp(entry->d_name, text, strlen(text)) == 0) {
+
+                        // check if it's an executable
+                        char full_path[512];
+                        snprintf(full_path, sizeof(full_path), "%s/%s", token, entry->d_name);
+                        struct stat sb;
+                        if (stat(full_path, &sb) == 0 && sb.st_mode & S_IXUSR) {
+                            // Append to possible matches
+                            possible_matches = realloc(possible_matches, (match_index + 2) * sizeof(char *));
+                            possible_matches[match_index] = strdup(entry->d_name);
+                            possible_matches[match_index + 1] = NULL;
+                            match_index++;
+                        }
+
+                    }
+
+                }
+                closedir(dir);
+            }
+            token = strtok(NULL, ":");
+        }
+        match_index = 0;
+    }
+
+    if (possible_matches && possible_matches[match_index]) {
+        return strdup(possible_matches[match_index++]);
+    }
+
+    return NULL;
+}
+
+char **shell_completion(const char *text, int start, int end) {
+    rl_attempted_completion_over = 1;
+
+    if (start == 0) {
+        return rl_completion_matches(text, command_generator);
+    }
+
+    return NULL;
 }
 
 int shell_num_builtins() {
