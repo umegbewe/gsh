@@ -401,14 +401,19 @@ char *command_generator(const char *text, int state) {
     return NULL;
 }
 
+char *filename_completion(const char *text, int state) {
+    return rl_filename_completion_function(text, state);
+
+}
+
 char **shell_completion(const char *text, int start, int end) {
     rl_attempted_completion_over = 1;
 
     if (start == 0) {
         return rl_completion_matches(text, command_generator);
+    } else {
+        return rl_completion_matches(text, filename_completion);
     }
-
-    return NULL;
 }
 
 int shell_num_builtins() {
