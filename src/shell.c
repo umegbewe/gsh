@@ -140,7 +140,7 @@ int shell_launch(char **args, int bg) {
     pid = fork();
     if (pid == 0) {
         // child process
-        
+
         // reset signal handlers to default
         signal(SIGINT, SIG_DFL);
         signal(SIGTSTP, SIG_DFL);
@@ -360,7 +360,8 @@ char *command_generator(const char *text, int state) {
             possible_matches = NULL;
         }
 
-        char * path = getenv("PATH");
+        char * path_original = getenv("PATH");
+        char * path = strdup(path_original);
         char *token = strtok(path, ":");
 
         while (token != NULL) {
@@ -389,6 +390,7 @@ char *command_generator(const char *text, int state) {
             }
             token = strtok(NULL, ":");
         }
+        free(path);
         match_index = 0;
     }
 
