@@ -140,6 +140,12 @@ int shell_launch(char **args, int bg) {
     pid = fork();
     if (pid == 0) {
         // child process
+        
+        // reset signal handlers to default
+        signal(SIGINT, SIG_DFL);
+        signal(SIGTSTP, SIG_DFL);
+        signal(SIGTTOU, SIG_DFL);
+
         // set process group ID to child's PID
         if (setpgid(0, 0) < 0) {
             perror("setpgid failed");

@@ -8,11 +8,7 @@
 int num_bg_jobs = 0;
 
 int main(int argc, char **argv) {
-
-    signal(SIGINT, SIG_IGN);
-    signal(SIGTSTP, SIG_IGN);
-    signal(SIGTTOU, SIG_IGN);
-
+    // Load history
     rl_attempted_completion_function = shell_completion;
 
     if (argc > 1) {
