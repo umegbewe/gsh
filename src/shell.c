@@ -18,11 +18,12 @@ char *builtin_str[] = {
     "cd",
     "help",
     "exit",
-    "fg",
+    "jobs",
     "bg",
+    "fg",
     "kill",
     "stop",
-    "history",
+    "history"
 };
 
 int (*builtin_func[]) (char **) = {
@@ -30,11 +31,11 @@ int (*builtin_func[]) (char **) = {
     &shell_help,
     &shell_exit,
     &shell_jobs,
-    &shell_fg,
     &shell_bg,
+    &shell_fg,
     &shell_kill,
     &shell_stop,
-    &shell_history,
+    &shell_history
 };
 
 
@@ -329,14 +330,14 @@ int shell_stop(char **args) {
 }
 
 int shell_history(char **args) {
-    HIST_ENTRY **history = history_list();
-    if (history) {
-        for (int i = 0; i < sizeof(history); i++) {
-            printf("%d %s\n", i, history[i]->line);
-        }
+    int i = 1;
+    HIST_ENTRY *entry;
+    while ((entry = history_get(i++)) != NULL) {
+        printf("%d. %s\n", i - 1, entry->line);
     }
     return 1;
 }
+
 int shell_num_builtins() {
     return sizeof(builtin_str) / sizeof(char *);
 }
